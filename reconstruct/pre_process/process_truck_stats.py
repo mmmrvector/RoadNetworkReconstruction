@@ -1,8 +1,6 @@
 import csv
 import time
 data_path = "E:\毕业论文\Truck\\new_data.csv"
-#new_data_path = "E:\毕业论文\Truck\\new_data_without_static_truck.csv"
-#new_data_path = "E:\毕业论文\Truck\\new_data_without_static_truck_20170901_20170907.csv"
 new_data_path = "../../data/new_data_without_static_truck_20170901_20170907.csv"
 total = 0
 new_data = []

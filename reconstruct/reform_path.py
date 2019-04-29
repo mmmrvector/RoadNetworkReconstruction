@@ -12,7 +12,7 @@ import numpy as np
 import copy
 
 data_path='../data/truck_data_to_reform_road_20170901_20170907_11.csv'
-#data_path = "E:\毕业论文\Truck\\truck_data_to_reform_road_2.csv"
+
 points = [] #点集合
 amuths = [] #点方向集合
 points_stats = [] #对应点所在道路数
