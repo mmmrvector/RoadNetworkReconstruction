@@ -2,7 +2,8 @@ import csv
 import time
 data_path = "E:\毕业论文\Truck\\new_data.csv"
 #new_data_path = "E:\毕业论文\Truck\\new_data_without_static_truck.csv"
-new_data_path = "E:\毕业论文\Truck\\new_data_without_static_truck_20170901_20170907.csv"
+#new_data_path = "E:\毕业论文\Truck\\new_data_without_static_truck_20170901_20170907.csv"
+new_data_path = "../../data/new_data_without_static_truck_20170901_20170907.csv"
 total = 0
 new_data = []
 
@@ -36,9 +37,6 @@ for key in dict:
         new_data.append(dd)
 
 
-
-
-
 index = 0
 with open(new_data_path, 'w', newline ='') as csv_f:
     csv_writer = csv.writer(csv_f)
@@ -50,8 +48,5 @@ with open(new_data_path, 'w', newline ='') as csv_f:
         csv_writer.writerow(row)
 
 print(total)
-
-
 t1 = time.perf_counter()
-
 print(t1 - t0)

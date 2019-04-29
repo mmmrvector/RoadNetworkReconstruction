@@ -3,7 +3,7 @@ from data_type import LinkedList
 from data_type import Node
 import random
 from scipy import spatial
-import tools
+from reconstruct import tools
 import time
 import math
 import matplotlib
@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import copy
 
-data_path='E:\毕业论文\Truck\\truck_data_to_reform_road_20170901_20170907_11.csv'
+data_path='../data/truck_data_to_reform_road_20170901_20170907_11.csv'
 #data_path = "E:\毕业论文\Truck\\truck_data_to_reform_road_2.csv"
 points = [] #点集合
 amuths = [] #点方向集合

@@ -1,7 +1,7 @@
 import csv
 import time
-import paint2
-import reform_path
+from reconstruct import get_feature_points
+from reconstruct import reform_path
 
 sd_angle = 3
 radius1 = 0.0001

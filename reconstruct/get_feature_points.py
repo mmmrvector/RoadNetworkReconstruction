@@ -3,15 +3,15 @@ import csv
 import random
 from sklearn.cluster import DBSCAN
 import numpy as np
-import tools
+from reconstruct import tools
 import time
 from scipy import spatial
 
 
 
 #data_path = "E:\毕业论文\Truck\\new_data_without_static_truck.csv"
-data_path = "E:\毕业论文\Truck\\new_data_without_static_truck_20170901_20170907.csv"
-
+#data_path = "E:\毕业论文\Truck\\new_data_without_static_truck_20170901_20170907.csv"
+data_path = "../data/new_data_without_static_truck_20170901_20170907.csv"
 x = []
 y = []
 
