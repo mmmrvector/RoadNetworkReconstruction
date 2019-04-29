@@ -1,6 +1,7 @@
+
 import csv
-from data_type import LinkedList
-from data_type import Node
+from model.data_type import LinkedList
+from model.data_type import Node
 import random
 from scipy import spatial
 from reconstruct import tools
@@ -171,248 +172,8 @@ def merge_path(path_data, threshold):
     return path_data
 
 
-'''
-改进的合并道路段 -------弃之不用
-'''
-def merge_path2(path_data):
-    print("合并之前路段数量为", len(path_data))
-    #path_data中包含的点
-    points_in_path_data = []
-    #记录点所在的path
-    paths_contain_point = [None for i in range(2100)] #TODO 临时设定的大小，可能存在bug
-    #记录该点是否需要考虑合并其所在路段
-    points_to_be_considered = []
-
-    for li in path_data:
-
-        temp_node = li._head.getNext()
-        while temp_node != None:
-            if temp_node.getValue() not in points_in_path_data:
-                points_in_path_data.append(temp_node.getValue())
-            i = points_in_path_data.index(temp_node.getValue())
-            if paths_contain_point[i] == None:
-                paths_contain_point[i] = []
-            if li not in paths_contain_point[i]:
-                (paths_contain_point[i]).append(li)
-            temp_node = temp_node.getNext()
-
-    points_to_be_considered =  [0 for i in range(len(points_in_path_data))]
-
-    for i in range(len(points_in_path_data)):
-        temp_list = paths_contain_point[i]
-        if len(temp_list) > 1:
-            points_to_be_considered[i] = 1
-    #points_in_path_data = list(points_in_path_data)
-
-    while sum(points_to_be_considered) != 0:
-        for i in range(len(points_in_path_data)):
-            if points_to_be_considered[i] == 0:
-                continue
-            index_list = []
-            index_of_paths_list = []
-            for li in paths_contain_point[i]:
-
-                if li not in path_data:
-                    #如果Li不在path_data中，则说明li已经被合并过了
-                    #paths_contain_point[i].remove(li)
-                    continue
-
-                temp_index = li.index(points_in_path_data[i])
-                #TODO 光取出索引仍然有问题，如何修改——不用索引，直接用链表操作
-                #只取出路段起始点和终点索引
-                if temp_index == 1 or temp_index == li._length:
-                    index_list.append(temp_index)
-                    index_of_paths_list.append(path_data.index(li))
-
-            #开始合并
-            while len(index_list) > 1:
-                #不存在起始点或全都是起始点
-                if 1 not in index_list or sum(index_list) == len(index_list):
-                    points_to_be_considered[i] = 0
-                    break
-                temp_index_list = copy.deepcopy(index_list)
-                for _index in index_list:
-                    if _index not in temp_index_list:
-                        continue
-                    if _index == 1:
-                        max_index = 0
-                        for __index in index_list:
-                            if __index not in temp_index_list:
-                                continue
-                            if __index != _index and __index > max_index:
-                                max_index = __index
-                        if max_index != 0 and max_index != 1:
-                            path1 = path_data[index_of_paths_list[index_list.index(_index)]]
-                            path2 = path_data[index_of_paths_list[index_list.index(max_index)]]
-                            temp_p2 = LinkedList()
-                            node = path2._head.getNext()
-                            while node != None:
-                                temp_p2.append(node.getValue())
-                                node = node.getNext()
-                            path_data.remove(path1)
-                            path_data.remove(path2)
-
-                            #paths_contain_point[i].remove(path1)
-                            #paths_contain_point[i].remove(path2)
-                            path2.union(path1)
-                            path_data.append(path2)
-                            temp_index_list.remove(_index)
-                            temp_index_list.remove(max_index)
-                            dis = path2.max_path_segment()
-                            if dis > 0.002:
-                                p1 = path1
-                                p2 = path2
-                                print(p1.max_path_segment())
-                                print(temp_p2.max_path_segment())
-                                p = temp_p2
-                            # no more path1 or path2
-                            for v in paths_contain_point:
-                                if v != None and path1 in v:
-                                    v.remove(path1)
-                                    v.append(path2)
-                                if v != None and temp_p2 in v:
-                                    v.remove(path2)
-                                    if path2 not in v:
-                                        v.append(path2)
-
-                            #paths_contain_point[i].append(path2)
-                            #print("the length of path_data - 1")
-                        else:
-                            temp_index_list.remove(_index)
-                index_list = copy.deepcopy(temp_index_list)
-            points_to_be_considered[i] = 0
-    print("合并之后路段数量为", len(path_data))
-    return path_data
 
 
-'''
-改进的合并道路段2 -------弃之不用
-'''
-def merge_path3(path_data):
-    print("合并之前路段数量为", len(path_data))
-    # path_data中包含的点
-    points_in_path_data = []
-    # 记录点所在的path
-    paths_contain_point = [None for i in range(2100)]  # TODO 临时设定的大小，可能存在bug
-    # 记录该点是否需要考虑合并其所在路段
-    points_to_be_considered = []
-
-    for li in path_data:
-
-        temp_node = li._head.getNext()
-        while temp_node != None:
-            if temp_node.getValue() not in points_in_path_data:
-                points_in_path_data.append(temp_node.getValue())
-            i = points_in_path_data.index(temp_node.getValue())
-            if paths_contain_point[i] == None:
-                paths_contain_point[i] = []
-            if li not in paths_contain_point[i]:
-                (paths_contain_point[i]).append(li)
-            temp_node = temp_node.getNext()
-
-    points_to_be_considered = [0 for i in range(len(points_in_path_data))]
-
-    for i in range(len(points_in_path_data)):
-        temp_list = paths_contain_point[i]
-        if len(temp_list) > 1:
-            points_to_be_considered[i] = 1
-    # points_in_path_data = list(points_in_path_data)
-
-    while sum(points_to_be_considered) != 0:
-        for i in range(len(points_in_path_data)):
-            if points_to_be_considered[i] == 0:
-                continue
-            index_list = []
-            index_of_paths_list = []
-            for li in paths_contain_point[i]:
-
-                if li not in path_data:
-                    # 如果Li不在path_data中，则说明li已经被合并过了
-                    # paths_contain_point[i].remove(li)
-                    continue
-
-                temp_index = li.index(points_in_path_data[i])
-                # TODO 光取出索引仍然有问题，如何修改——不用索引，直接用链表操作
-                # 只取出路段起始点和终点索引
-                if temp_index == 1 or temp_index == li._length:
-                    index_list.append(temp_index)
-                    index_of_paths_list.append(paths_contain_point[i].index(li))
-
-            # 开始合并
-            while len(index_list) > 1:
-                # 不存在起始点或全都是起始点
-                if 1 not in index_list or sum(index_list) == len(index_list):
-                    points_to_be_considered[i] = 0
-                    break
-                temp_index_list = copy.deepcopy(index_list)
-                temp_index_of_paths_list = copy.deepcopy(index_of_paths_list)
-                for j in range(len(index_list)):
-                    if index_list[j] == None or index_list[j] not in temp_index_list:
-                        continue
-                    if index_list[j] == 1:
-                        max_index = -1
-                        max_len = 0
-                        for k in range(len(index_list)):
-                            if index_list[k] == None or index_list[k] not in temp_index_list:
-                                continue
-                            if index_list[k] != index_list[j] and index_list[k] > max_len:
-                                max_len = index_list[k]
-                                max_index = k
-                        if max_len != 0 and max_len != 1:
-                            path1 = paths_contain_point[i][index_of_paths_list[j]]
-                            path2 = paths_contain_point[i][index_of_paths_list[max_index]]
-                            temp_p2 = LinkedList()
-                            node = path2._head.getNext()
-                            while node != None:
-                                temp_p2.append(node.getValue())
-                                node = node.getNext()
-                            try:
-                                path_data.remove(path1)
-                                path_data.remove(path2)
-                            except Exception:
-                                debugg = 0
-                                pass
-
-                            # paths_contain_point[i].remove(path1)
-                            # paths_contain_point[i].remove(path2)
-                            path2.remove(points_in_path_data[i])
-                            path2.union(path1)
-                            path_data.append(path2)
-                            temp_index_list[j] = None
-                            temp_index_list[max_index] = None
-                            temp_index_of_paths_list[j] = None
-                            temp_index_of_paths_list[max_index] = None
-                            dis = path2.max_path_segment()
-                            if dis > 0.002:
-                                p1 = path1
-                                p2 = path2
-                                print(p1.max_path_segment())
-                                print(temp_p2.max_path_segment())
-                                p = temp_p2
-                            # no more path1 or path2
-                            for v in paths_contain_point:
-                                if v != None and path1 in v:
-                                    v.remove(path1)
-                                    v.append(path2)
-                                if v != None and temp_p2 in v:
-                                    v.remove(path2)
-                                    if path2 not in v:
-                                        v.append(path2)
-
-                            # paths_contain_point[i].append(path2)
-                            # print("the length of path_data - 1")
-                        else:
-                            temp_index_list[j] = None
-                            temp_index_of_paths_list[j] = None
-                for v1,v2 in zip(temp_index_list, temp_index_of_paths_list):
-                    if v1 == None:
-                        temp_index_list.remove(v1)
-                        temp_index_of_paths_list.remove(v2)
-                index_list = copy.deepcopy(temp_index_list)
-                index_of_paths_list = copy.deepcopy(temp_index_of_paths_list)
-            points_to_be_considered[i] = 0
-    print("合并之后路段数量为", len(path_data))
-    return path_data
 
 '''
 处理长度为阈值的路段
@@ -453,86 +214,13 @@ def process_threshold(path_data, threshold):
     return path_data
 
 
-'''
-处理有重合的路段——弃之不用
-'''
-def process_coincidence(path_data):
-    print("去重前路段数量为", len(path_data))
-    #标记是否还存在路段需要去重
-    flag = False
-    while True:
-        print("循环一次")
-        print("路段个数为", len(path_data))
-        if flag:
-            break
-        flag = True
-        new_path_data = []
 
-        while True:
-            tt1 = time.perf_counter()
-            if len(path_data) <= 1:
-                break
-            try:
-                cur_path = path_data.pop(0)
-            except Exception:
-                print(Exception.with_traceback())
-                break
-            if cur_path._length < 5:
-                continue
-            flag2 = True
-            flag3 = False
-            for path in path_data:
-                coincidence_points = cur_path.get_same_segment(path)
-                if len(coincidence_points) == 0:
-                    continue
-                if cur_path._length < path._length:
-                    temp_path = LinkedList()
-                    temp_path.deep_copy(cur_path)
-                    cur_path = LinkedList()
-                    cur_path.deep_copy(path)
-                    path = LinkedList()
-                    path.deep_copy(temp_path)
-                    flag3 = True
-
-                print(cur_path)
-                #point在coincidence_points中是按其在path中的顺序排列的，因此剩下的point必然在path分裂的右半部分
-                #TODO 去重后，长度不到阈值的路段尝试去除
-                for point in coincidence_points:
-                    print(coincidence_points.index(point), len(coincidence_points))
-                    print(point)
-                    left_part, right_part = path.split(point)
-                    if left_part is not None and left_part._length >= 4:
-                        path_data.append(left_part)
-                        new_path_data.append(left_part)
-                    print("1")
-                    if right_part is not None and right_part._length >= 4:
-                        path_data.append(right_part)
-                    print("2")
-                    if path in path_data:
-                        path_data.remove(path)
-                    print("3")
-                    if right_part is not None:
-                        path = right_part
-                print("ok1")
-                if path not in new_path_data and path._length >= 4:
-                    new_path_data.append(path)
-                flag = False
-                flag2 = False
-                print("ok")
-                if flag3:
-                    break
-
-            if flag2:
-                new_path_data.append(cur_path)
-        path_data = copy.deepcopy(new_path_data)
-    print("去重后路段数量为", len(path_data))
-    return path_data
 
 
 '''
 处理有重合的路段2
 '''
-def process_coincidence2(path_data):
+def process_coincidence(path_data):
     print("去重前路段数量为", len(path_data))
     path_exist_list = [1 for i in range(len(path_data))]
     flag_end = False
@@ -762,29 +450,7 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
                     break
         t3 = time.perf_counter()
         print("接续两个在同一方向的路段耗时", t3-t2, "s")
-        '''
-        #对两个路段首尾相连
-        for li in path_data:
-            tail = li._head.getNext()
-            while tail.getNext() != None:
-                tail = tail.getNext()
-            tail_index = points.index(tail.getValue())
-            tail_point = points[tail_index]
-            tail_amuth = amuths[tail_index]
-            for li2 in path_data:
-                if li != li2:
-                    head = li2._head.getNext()
-                    head_index = points.index(head.getValue())
-                    head_point = head.getValue()
-                    head_amuth = amuths[head_index]
-                    dis = math.sqrt(math.pow(tail_point[0] - head_point[0], 2) + math.pow(tail_point[1] - head_point[1], 2))
-                    angle = tools.get_degree(tail_point[0], tail_point[1], head_point[0], head_point[1])
-                    if dis < 0.001 and tools.angle_in_interval(angle, (tail_amuth - 15)%360, (tail_amuth+15)%360)\
-                            and tools.angle_in_interval(head_amuth, (angle - 10)%360, (angle + 10) % 360)\
-                            and [tail_point, head_point] not in visited_path:
-                        visited_path.append([tail_point ,head_point])
-                        li.append(head_point)
-        '''
+
         print(len(path_data))
         '''
             形成路段集合
@@ -820,43 +486,10 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         '''
         path_data = process_threshold(path_data, 4)
         path_data = merge_path(path_data, 4)
-    path_data = process_coincidence2(path_data)
+    path_data = process_coincidence(path_data)
     path_data = merge_path(path_data, 4)
 
-    '''
-    测试是否仍存在首尾相连的路段没有合并
-    
-    for li in path_data:
-        if li._length < 4:
-            continue
-        tail_node = li._head.getNext()
-        while tail_node.getNext() != None:
-            tail_node = tail_node.getNext()
-        tail_point = tail_node.getValue()
-        for li2 in path_data:
-            if li2._length < 4:
-                continue
-            head_node = li2._head.getNext()
-            head_point = head_node.getValue()
-            if tail_point == head_point:
-                print("exist")
-    '''
-    '''
-    统计每个点所在路段数
-    
-    for li in path_data:
-        if li._length > 3:
-            tempNode = li._head.getNext()
-            while  tempNode != None:
-                temp_point = tempNode.getValue()
-                temp_index = points.index(temp_point)
-                points_stats[temp_index] += 1
-                tempNode = tempNode.getNext()
-    tt = [0 for i in range(20)]
-    for i in range(len(points_stats)):
-        tt[points_stats[i]] += 1
-    print(tt)
-    '''
+
 
     #路段起始点
     path_head_x = []
@@ -901,12 +534,9 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
 
     x = []
     y = []
-    #for i in range(len(points)):
-       # x.append(points[i][0])
-       # y.append(points[i][1])
+
     x1 = None
     y1 = None
-
 
     x2 = []
     y2 = []
@@ -917,7 +547,6 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
 
 
     for v in path_array:
-
         i = path_array.index(v)
         dd = np.mat(v)
         x1 = dd[:, 0]
@@ -934,14 +563,10 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         else:
             ax2.plot(x1, y1, linewidth=0.5, color='b')
 
-
-
-
     ax2.scatter(total_x, total_y, s =0.1)
     ax3.scatter(x, y, s=0.1)
-    ax2.scatter(x2, y2, s=1, marker='o', c='yellow')
-    #ax2.scatter(path_head_x, path_head_y, s=1, marker='*', c='green')
-    #ax3.scatter(path_head_x, path_head_y, s=1, marker='*', c='green')
+    #ax2.scatter(x2, y2, s=1, marker='o', c='yellow')
+
     print(x2, y2)
     for i in range(len(points)):
         A = points[i]
@@ -949,13 +574,12 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         tools.draw_arrow(A, B, ax)
         if A in path_head_points:
             tools.draw_arrow(A, B, ax2)
-            #tools.draw_arrow(A, B, ax3)
-    #ax.savefig('plot1.png', dpi=600)
+
     plt.savefig('E:\毕业论文\Figures\\plot.png', dpi=600)
     plt.show()
 
     #绘制svg图
-    tools.draw_svg(path_array, "xy-scatter-plot.svg")
+    tools.draw_svg(path_array, "plot.svg")
     new_path_array= []
     for path in path_array:
         if (len(path)) >=4:
@@ -971,50 +595,7 @@ if __name__ == "__main__":
     reform_path(0.0004, 15, 70)
 
 
-'''
-test
-'''
-'''
-l,p2 = find_path_part(points[11], amuths[11])
-print(points[11], amuths[11])
-print(l)
-for i in range(l):
-    print(points[p2[i]], amuths[p2[i]])
 
-'''
-
-
-
-'''剔除孤立点，以max_eps为半径'''
-'''
-kd = spatial.KDTree(points)
-gama = [i for i in range(len(amuths))]
-fill = []
-isolated_points = []
-print(len(amuths))
-while(len(gama) > 0):
-    j = random.choice(gama)
-    fill.append(j)
-    gama.remove(j)
-    neighbor_set = kd.query_ball_point(points[j], 0.0002)
-    if  len(neighbor_set) != 1:
-        for i in neighbor_set:
-
-            if i not in fill:
-                fill.append(i)
-                gama.remove(i)
-    else:
-        isolated_points.append(j)
-temp_p = []
-temp_a = []
-for i in isolated_points:
-    temp_p.append(points[i])
-    temp_a.append(amuths[i])
-for i in range(len(temp_p)):
-    points.remove(temp_p[i])
-    amuths.remove(temp_a[i])
-
-'''
 
 
 
