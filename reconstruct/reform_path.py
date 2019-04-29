@@ -218,7 +218,7 @@ def process_threshold(path_data, threshold):
 
 
 '''
-处理有重合的路段2
+处理有重合的路段
 '''
 def process_coincidence(path_data):
     print("去重前路段数量为", len(path_data))
@@ -393,8 +393,6 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
 
         path_data.append(li)
 
-
-
     print("共的得到",len(path_data),"个路段    共有", points_num, "个特征点")
 
 
@@ -430,7 +428,7 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
                 nearest_angle = 9999
                 nearest_dis = 9999
                 nearest_index = -1
-                #TODO 改为最近方向优先
+
                 for i in tail_neighbor_index_set:
                     angle = tools.get_degree(tail_point[0], tail_point[1], points[i][0], points[i][1])
                     if tools.angle_in_interval(angle, (tail_amuth - 7)%360, (tail_amuth + 7) % 360) \
@@ -565,7 +563,7 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
 
     ax2.scatter(total_x, total_y, s =0.1)
     ax3.scatter(x, y, s=0.1)
-    #ax2.scatter(x2, y2, s=1, marker='o', c='yellow')
+
 
     print(x2, y2)
     for i in range(len(points)):
@@ -582,15 +580,14 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
     tools.draw_svg(path_array, "plot.svg")
     new_path_array= []
     for path in path_array:
+        #用来调整阈值大小
         if (len(path)) >=4:
            new_path_array.append(path)
         else:
             new_path_array.append(None)
     tools.draw_svg(new_path_array, "E:\毕业论文\Figures\\plot.svg")
 
-    for point in points:
-        if point == [116.4415022, 39.72258294]:
-            print(amuths[points.index(point)])
+
 if __name__ == "__main__":
     reform_path(0.0004, 15, 70)
 
