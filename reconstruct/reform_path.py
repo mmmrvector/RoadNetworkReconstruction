@@ -23,17 +23,13 @@ points_visit = [] #对应点是否已被访问
 
 
 '''
-    函数用来获取路段，需要有一个起始点及起始点方向
-    有几个超参数
-'''
-
-
-'''
 返回值分一下三种情况
    1.  0, []
    2.  1, [(certain index)]
    3.  > 1 [(index arrays)] 数组的第一个要么就是道路延伸方向上最近的特征点，要么就是分叉点 
 '''
+
+
 def find_path_part(begin_point, begin_point_amuth, kd, _radius4, _cur_point_angle, _fork_angle):
     pp = []
     temp = []
@@ -99,7 +95,8 @@ def find_path_part(begin_point, begin_point_amuth, kd, _radius4, _cur_point_angl
 '''
 合并道路段
 '''
-#
+
+
 def merge_path(path_data, threshold):
     print("合并之前路段数量为", len(path_data))
 
@@ -172,12 +169,11 @@ def merge_path(path_data, threshold):
     return path_data
 
 
-
-
-
 '''
 处理长度为阈值的路段
 '''
+
+
 def process_threshold(path_data, threshold):
     print("处理阈值路段之前路段数量为", len(path_data))
     new_path_data = []
@@ -214,12 +210,11 @@ def process_threshold(path_data, threshold):
     return path_data
 
 
-
-
-
 '''
-处理有重合的路段
+处理有重合部分的路段
 '''
+
+
 def process_coincidence(path_data):
     print("去重前路段数量为", len(path_data))
     path_exist_list = [1 for i in range(len(path_data))]
@@ -275,6 +270,68 @@ def process_coincidence(path_data):
     return path_data
 
 
+'''
+求解两条曲线之间的距离
+path1 = [p1, p2, p3, ..., ]
+path2 = [q1, q2, q3, ..., ]
+'''
+
+'''
+def cal_dist_between_curves(path1, path2):
+    if len(path1) < len(path2):
+        temp = path1
+        path1 = path2
+        path2 = temp
+
+'''
+
+
+'''
+处理重合但无交集部分的路段
+分两种情形
+需考虑方向
+'''
+
+
+def process_similar_path(path_data):
+    t5 = time.perf_counter()
+    print("去除重合但无交集前路段个数为", len(path_data))
+    path_exist = [1 for i in range(len(path_data))]
+    path_array = []
+    # 首先对path_data进行处理，并排序，便于后续处理
+    path_data.sort(key= lambda path: path._length)
+    for path in path_data:
+        path_array.append(path.to_list())
+
+    for i in range(len(path_array) - 1):
+
+        for j in range(len(path_array) - 1, i, -1):
+            if i == j:
+                continue
+            dist = 0
+            for point in path_array[i]:
+                min_dist = tools.MAX_NUMBER
+                for point_A, point_B in zip(path_array[j][:-1], path_array[j][1:]):
+                    temp_dist = tools.cal_point_2_line(point, point_A, point_B)
+                    if temp_dist < min_dist:
+                        min_dist = temp_dist
+
+                dist += min_dist
+            dist = dist / (len(path_array[i]) - 1)
+            # TODO 此处参数需要斟酌
+            if dist < 0.00005:
+                path_exist[i] = 0
+                break
+
+
+
+    new_path_data = []
+    for i in range(len(path_data)):
+        if path_exist[i] == 1:
+            new_path_data.append(path_data[i])
+    t6 = time.perf_counter()
+    print("去除重合但无交集后路段个数为", len(new_path_data), "且该阶段耗时", t6 - t5, "s")
+    return new_path_data
 
 
 
@@ -284,7 +341,7 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
     cur_point_angle = _cur_point_angle  # 当前特征点延伸方向最大角度范围
     fork_angle = _fork_angle
 
-    #设置图像分辨率
+    # 设置图像分辨率
     plt.rcParams['figure.dpi'] = 600
     #plt.rcParams['savefig.dpi'] = 1000
     fig = plt.figure(num=1)
@@ -484,8 +541,10 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         '''
         path_data = process_threshold(path_data, 4)
         path_data = merge_path(path_data, 4)
+
     path_data = process_coincidence(path_data)
     path_data = merge_path(path_data, 4)
+    path_data = process_similar_path(path_data)
 
 
 

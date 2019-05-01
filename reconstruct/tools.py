@@ -5,7 +5,8 @@ from scipy import spatial
 import math
 import pygal
 
-
+#MAX_NUMBER
+MAX_NUMBER = 99999999
 
 
 #判断角度是否落在某一区间内
@@ -214,7 +215,23 @@ def draw_svg(path_array, file_name):
         f.writelines(data1)
 
 
+'''
+计算点到线段距离，且只计算当点的投影在线段上时的距离，否则返回MAX
+'''
 
+
+def cal_point_2_line(point, A, B):
+    # 首先判断∠CAB是否为钝角
+    if (point[0] - A[0]) * (B[0] - A[0]) + (point[1] - A[1]) * (B[1] - A[1]) < 0:
+        return MAX_NUMBER
+    # 判断∠CBA是否为钝角
+    if (point[0] - B[0]) * (A[0] - B[0]) + (point[1] - B[1]) * (A[1] - B[1]) < 0:
+        return MAX_NUMBER
+    para_A = A[1] - B[1]
+    para_B = -A[0] + B[0]
+    para_C = -(A[1] - B[1]) * B[0] + (A[0] - B[0]) * B[1]
+
+    return abs(para_A * point[0] + para_B * point[1] + para_C) / sqrt(para_A * para_A + para_B * para_B)
 
 
 cnames = {

@@ -141,7 +141,7 @@ class LinkedList():
             self_node1 = self_node1.getNext()
         return ans_list
 
-    #split 将路段以某一基础路段为分界，分裂为两个路段
+    # split 将路段以某一基础路段为分界，分裂为两个路段
     def split(self, point):
         left_part = LinkedList()
         right_part = LinkedList()
@@ -151,7 +151,7 @@ class LinkedList():
             if node.getValue() == point:
                 left_part.append(node.getValue())
                 if node.getNext() is not None:
-                    #right_part.append(node.getNext().getValue())
+                    # right_part.append(node.getNext().getValue())
                     flag = True
                     node = node.getNext()
             else:
@@ -166,7 +166,7 @@ class LinkedList():
             right_part = None
         return left_part, right_part
 
-    #insert链表中插入元素
+    # insert链表中插入元素
     def insert(self,pos,value):
         if pos <= 1:
             self.add(value)
@@ -183,6 +183,16 @@ class LinkedList():
                 current = current.getNext()
             pre.setNext(temp)
             temp.setNext(current)
+
+    def to_list(self):
+        ans = []
+        node = self._head.getNext()
+        while node is not None:
+            point = node.getValue()
+            ans.append(point)
+            node = node.getNext()
+        return ans
+
     def __str__(self):
         if self._length == 0:
             return "LinkedList is None"
