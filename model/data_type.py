@@ -35,6 +35,7 @@ class LinkedList():
         newnode = Node(value,None)    #create一个node（为了插进一个链表）
         newnode.setNext(self._head)
         self._head = newnode
+        self._length += 1
 
     #append在链表尾部添加元素:O(n)
     def append(self,value):
