@@ -304,26 +304,38 @@ def process_similar_path(path_data):
         path_array.append(path.to_list())
 
     for i in range(len(path_array) - 1):
-
         for j in range(len(path_array) - 1, i, -1):
             if i == j:
                 continue
             dist = 0
+            direction_flag = False # 用来判断path[i]与path[j]路段方向是否相近
+
             for point in path_array[i]:
+                cur_amuth = amuths[points.index(point)]
+                seg_amuth = None
                 min_dist = tools.MAX_NUMBER
+
                 for point_A, point_B in zip(path_array[j][:-1], path_array[j][1:]):
+                    cur_seg_amuth = tools.get_degree(point_A[0], point_A[1], point_B[0], point_B[1])
+                    # cur_seg_amuth = (amuths[points.index(point_A)] + amuths[points.index(point_B)]) / 2
                     temp_dist = tools.cal_point_2_line(point, point_A, point_B)
                     if temp_dist < min_dist:
                         min_dist = temp_dist
+                        seg_amuth = cur_seg_amuth
 
+                if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 90 )%360, (seg_amuth + 90) % 360) == False):
+                    direction_flag = True
                 dist += min_dist
+
+            if direction_flag:
+                continue
+
             dist = dist / (len(path_array[i]) - 1)
+
             # TODO 此处参数需要斟酌
             if dist < 0.00005:
                 path_exist[i] = 0
                 break
-
-
 
     new_path_data = []
     for i in range(len(path_data)):
