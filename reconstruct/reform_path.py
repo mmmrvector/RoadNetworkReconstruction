@@ -303,6 +303,8 @@ def process_similar_path(path_data):
     for path in path_data:
         path_array.append(path.to_list())
 
+    # 处理情形一
+
     for i in range(len(path_array) - 1):
         for j in range(len(path_array) - 1, i, -1):
             if i == j:
@@ -323,8 +325,9 @@ def process_similar_path(path_data):
                         min_dist = temp_dist
                         seg_amuth = cur_seg_amuth
 
-                if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 90 )%360, (seg_amuth + 90) % 360) == False):
+                if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 70 )%360, (seg_amuth + 70) % 360) is False):
                     direction_flag = True
+
                 dist += min_dist
 
             if direction_flag:
@@ -341,8 +344,124 @@ def process_similar_path(path_data):
     for i in range(len(path_data)):
         if path_exist[i] == 1:
             new_path_data.append(path_data[i])
+
     t6 = time.perf_counter()
     print("去除重合但无交集后路段个数为", len(new_path_data), "且该阶段耗时", t6 - t5, "s")
+    return new_path_data
+
+def process_similar_path2(path_data):
+    #处理情形二
+    path_exist = [1 for i in range(len(path_data))]
+    path_array = []
+    # 首先对path_data进行处理，并排序，便于后续处理
+    for path in path_data:
+        path_array.append(path.to_list())
+    end_flag = False
+    while True:
+        if end_flag:
+            break
+        end_flag = True
+
+        for index1, path1 in enumerate(path_array):
+            if path_exist[index1] == 0:
+                continue
+            for index2, path2 in enumerate(path_array):
+                if path_exist[index2] == 0 or index1 == index2:
+                    continue
+                flag = False
+                dist = 0
+                direction_flag = False
+                similar_point_index = []
+                similar_point_index2 = []
+                for point in path1:
+
+                    cur_amuth = amuths[points.index(point)]
+                    seg_amuth = None
+                    min_dist = tools.MAX_NUMBER
+                    min_index = -1
+
+                    for point_A, point_B in zip(path2[:-1], path2[1:]):
+                        cur_seg_amuth = tools.get_degree(point_A[0], point_A[1], point_B[0], point_B[1])
+                        temp_dist = tools.cal_point_2_line(point, point_A, point_B)
+
+                        if temp_dist < min_dist and temp_dist < 0.0002:
+                            min_dist = temp_dist
+                            seg_amuth = cur_seg_amuth
+                            min_index = path2.index(point_A)
+
+                    if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 70) % 360,(seg_amuth + 70) % 360) is False):
+                        direction_flag = True
+
+                    if min_dist < 0.0001:
+                        dist += min_dist
+                        similar_point_index.append(path1.index(point))
+                        if min_index not in similar_point_index2:
+                            similar_point_index2.append(min_index)
+                        if min_index + 1 not in similar_point_index2:
+                            similar_point_index2.append(min_index + 1)
+
+
+                if direction_flag:
+                    break
+
+                if len(similar_point_index) == 0:
+                    continue
+
+                dist = dist / len(similar_point_index)
+
+                # 满足条件
+                if dist < 0.00005:
+                    flag = True
+
+                    # 仅针对情形二的1,2,3种分类
+                    similar_point_index2.sort()
+                    classified = tools.judge_similar(similar_point_index, len(path1))
+
+                    if classified == 0:
+                        continue
+                    if classified == 1:
+                        # 若这两个路段已经合并过，则跳过
+                        if len(similar_point_index) == 1:
+                            intersection_point = path1[similar_point_index[0]]
+                            if intersection_point in path2:
+                                continue
+
+                        new_path1 = path1[similar_point_index[-1] + 1:]
+                        # 接续时需考虑方向
+
+                        new_path1.insert(0, path2[similar_point_index2[-1]])
+                        path_exist[index1] = 0
+                        path_exist.append(1)
+                        path_array.append(new_path1)
+                        end_flag = False
+                    if classified == 2:
+                        # 若这两个路段已经合并过，则跳过
+                        if len(similar_point_index) == 1:
+                            intersection_point = path1[similar_point_index[0]]
+                            if intersection_point in path2:
+                                continue
+
+                        new_path1 = path1[:similar_point_index[0]]
+                        new_path1.append(path2[similar_point_index2[0] + 1])
+                        path_exist[index1] = 0
+                        path_exist.append(1)
+                        path_array.append(new_path1)
+                        end_flag = False
+                    if classified == 3:
+                        continue
+
+
+                # 当前path1已经完成一轮相似路段的合并
+                if flag:
+                    break
+
+
+    new_path_data = []
+    for i in range(len(path_exist)):
+        if path_exist[i] == 1:
+            path = LinkedList()
+            path.array_init(path_array[i])
+            new_path_data.append(path)
     return new_path_data
 
 
@@ -557,7 +676,14 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
     path_data = process_coincidence(path_data)
     path_data = merge_path(path_data, 4)
     path_data = process_similar_path(path_data)
+    # for debug
+    path_array = tools.data_2_array(path_data, 0)
+    tools.draw_svg(path_array, "temp.svg")
 
+    path_data = process_similar_path2(path_data)
+    # for debug
+    path_array = tools.data_2_array(path_data, 0)
+    tools.draw_svg(path_array, "temp2.svg")
 
 
     #路段起始点
