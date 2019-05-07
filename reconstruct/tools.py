@@ -221,6 +221,10 @@ def draw_svg(path_array, file_name):
 
 
 def cal_point_2_line(point, A, B):
+    if math.sqrt( abs(pow(point[0] - A[0], 2) + pow(point[1] - A[1], 2))) < 0.00000001\
+            or math.sqrt( abs(pow(point[0] - B[0], 2) + pow(point[1] - B[1], 2))) < 0.00000001:
+        return 0
+
     # 首先判断∠CAB是否为钝角
     if (point[0] - A[0]) * (B[0] - A[0]) + (point[1] - A[1]) * (B[1] - A[1]) < 0:
         return MAX_NUMBER
@@ -233,6 +237,51 @@ def cal_point_2_line(point, A, B):
 
     return abs(para_A * point[0] + para_B * point[1] + para_C) / sqrt(para_A * para_A + para_B * para_B)
 
+
+'''
+判断路段相似点是否连续，且从路段起点开始，或到路段终点结束
+return 0    不符合要求
+return 1    从起点开始
+return 2    到终点结束
+return 3    从起点到终点
+'''
+
+
+def judge_similar(similar_point_index, path_len):
+    flag = 0
+    similar_point_index.sort()
+    for index1, index2 in zip(similar_point_index[:-1], similar_point_index[1:]):
+        if index1 != index2 - 1:
+            return 0
+
+    if 0 in similar_point_index and path_len - 1 in similar_point_index:
+        return 3
+    if 0 in similar_point_index:
+        return 1
+    if path_len - 1 in similar_point_index:
+        return 2
+
+    return 0
+
+
+def data_2_array(path_data, threshold):
+    path_array = []
+    for li in path_data:
+        if li._length >= threshold:
+            temp = []
+            temp_Node = li._head.getNext()
+            while temp_Node is not None:
+                temp.append(temp_Node.getValue())
+                temp_Node = temp_Node.getNext()
+            path_array.append(temp)
+    return path_array
+
+
+def same_point(point1, point2):
+    if math.sqrt( abs(pow(point1[0] - point2[0], 2) + pow(point1[1] - point2[1], 2))) < 0.0000001:
+        return True
+    else:
+        return False
 
 cnames = {
 'aliceblue':            '#F0F8FF',
