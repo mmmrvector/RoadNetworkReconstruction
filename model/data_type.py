@@ -124,6 +124,13 @@ class LinkedList():
             temp_node = temp_node.getNext()
         self._tail = None
 
+
+    # 由数组进行初始化
+    def array_init(self, path):
+        for point in path:
+            self.append(point)
+
+
     #get_same_segment 返回重合路段
     def get_same_segment(self, link_list):
         ans_list = []
