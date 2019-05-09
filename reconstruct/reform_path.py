@@ -341,6 +341,8 @@ def process_similar_path2(path_data):
         end_flag = True
 
         for index1, path1 in enumerate(path_array):
+            if index1 == 1000:
+                break
             if path_exist[index1] == 0:
                 continue
             for index2, path2 in enumerate(path_array):
@@ -632,13 +634,13 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         visited_path = []
         stats = []
         for li in path_data:
-            if li._length >= 4:
+            if li._length >= 3:
                 temp_node = li._head.getNext()
                 while temp_node.getNext() is not None:
                     cur_path = [temp_node.getValue(), temp_node.getNext().getValue()]
                     num = 1
                     for li2 in path_data:
-                        if li != li2 and li2._length >= 4:
+                        if li != li2 and li2._length >= 3:
                             temp_node2 = li2._head.getNext()
                             while temp_node2.getNext() is not None:
                                 temp_path = [temp_node2.getValue(), temp_node2.getNext().getValue()]
@@ -656,12 +658,12 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         '''
         合并道路段
         '''
-        path_data = merge_path(path_data, 4)
+        path_data = merge_path(path_data, 3)
         '''
         处理长度为阈值的路段
         '''
-        path_data = process_threshold(path_data, 4)
-        path_data = merge_path(path_data, 4)
+        path_data = process_threshold(path_data, 3)
+        path_data = merge_path(path_data, 3)
 
     #path_data = process_coincidence(path_data)
     #path_data = merge_path2(path_data, 3)
@@ -673,6 +675,8 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         path_array = tools.data_2_array(path_data, 0)
         tools.draw_svg(path_array, "temp2.svg")
 
+        path_data = process_similar_path2(path_data)
+        path_data = merge_path(path_data, 0)
         path_data = process_similar_path2(path_data)
         path_data = merge_path(path_data, 0)
     # for debug
