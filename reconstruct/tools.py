@@ -117,6 +117,7 @@ def update_points(X, amuth_data, eps, sd_angle, kd):
                 y += X[i][1]
                 amuth += amuth_data[i]
                 sum += 1
+
         x = x / sum
         y = y / sum
         amuth = amuth / sum
@@ -175,13 +176,13 @@ def dbscan2(X, amuth_data, eps, min_Pts, sd_angle, kd):
                 points.append([x, y])
                 amuth_data2.append(amuth)
 
-            #TODO 以下代码是否影响了特征点的精确度
-            #改进？
+                #TODO 以下代码是否影响了特征点的精确度
+                #改进？
 
-            for i in actual_neigbor_pts:
-                if i not in fil:
-                    gama.remove(i)
-                    fil.append(i)
+                for i in actual_neigbor_pts:
+                    if i not in fil:
+                        gama.remove(i)
+                        fil.append(i)
 
 
     return points, amuth_data2
@@ -234,8 +235,11 @@ def cal_point_2_line(point, A, B):
     para_A = A[1] - B[1]
     para_B = -A[0] + B[0]
     para_C = -(A[1] - B[1]) * B[0] + (A[0] - B[0]) * B[1]
-
-    return abs(para_A * point[0] + para_B * point[1] + para_C) / sqrt(para_A * para_A + para_B * para_B)
+    try:
+        ans = abs(para_A * point[0] + para_B * point[1] + para_C) / sqrt(para_A * para_A + para_B * para_B)
+    except Exception:
+        print("Exception", point, A, B, para_A, para_B)
+    return ans
 
 
 '''
@@ -278,7 +282,7 @@ def data_2_array(path_data, threshold):
 
 
 def same_point(point1, point2):
-    if math.sqrt( abs(pow(point1[0] - point2[0], 2) + pow(point1[1] - point2[1], 2))) < 0.0000001:
+    if math.sqrt( abs(pow(point1[0] - point2[0], 2) + pow(point1[1] - point2[1], 2))) < 0.00000001:
         return True
     else:
         return False
