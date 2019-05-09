@@ -1,4 +1,4 @@
-
+from reconstruct.pre_process.get_distribution_of_trucks import get_ditribution
 import csv
 from model.data_type import LinkedList
 from model.data_type import Node
@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import copy
 
-data_path='../data/truck_data_to_reform_road_20170901_20170907_11.csv'
-
+data_path= '../data/truck_data_to_reform_road_20170901_20170907_19.csv'
+#data_path = '../data/truck_data_to_reform_road_2.csv'
 points = [] #点集合
 amuths = [] #点方向集合
 points_stats = [] #对应点所在道路数
@@ -93,80 +93,69 @@ def find_path_part(begin_point, begin_point_amuth, kd, _radius4, _cur_point_angl
 
 
 '''
-合并道路段
+合并道路段改进版
 '''
 
 
 def merge_path(path_data, threshold):
     print("合并之前路段数量为", len(path_data))
+    path_exist = [1 for i in range(len(path_data))]
+    path_array = []
+    #path_data.sort(key = lambda path:path._length)
+    for path in path_data:
+        path_array.append(path.to_list())
+
+    end_flag = False
+    while True:
+        if end_flag:
+            break
+        end_flag = True
+        for index1, path1 in enumerate(path_array):
+            if path_exist[index1] == 0 or len(path1) < threshold:
+                path_exist[index1] = 0
+                continue
+            head_point = path1[0]
+            tail_point = path1[-1]
+            max_index1, max_index2 = -1, -1
+            max_len1, max_len2 = 0, 0
+            for index2, path2 in enumerate(path_array):
+                if path_exist[index2] == 0 or len(path2) < threshold:
+                    path_exist[index2] = 0
+                    continue
+                head_point2 = path2[0]
+                tail_point2 = path2[-1]
+                if tools.same_point(head_point ,tail_point2) and len(path2) > max_len1:
+                    max_index1 = index2
+                    max_len1 = len(path2)
+                if tools.same_point(tail_point , head_point2) and len(path2) > max_len2:
+                    max_index2 = index2
+                    max_len2 = len(path2)
+
+            if max_index1 != -1:
+                #print("***")
+                path1 = path_array[max_index1] + path1[1:]
+                path_exist[index1] = 0
+                path_exist[max_index1] = 0
+                path_exist.append(1)
+                path_array.append(path1)
+                end_flag = False
+            if max_index2 != -1:
+                #print("*****")
+                path1 = path1[: -1] + path_array[max_index2]
+                path_exist[index1] = 0
+                path_exist[max_index2] = 0
+                path_exist.append(1)
+                path_array.append(path1)
+                end_flag = False
 
     new_path_data = []
-    flag = False
-
-    while True:
-        if flag:
-            break
-        flag = True
-        while True:
-            try:
-                cur_path = path_data.pop(0)
-            except Exception:
-                break
-            if cur_path._length < threshold:               #TODO 特征点太多时可以试着修改阈值
-                new_path_data.append(cur_path)
-                continue
-            head_node = cur_path._head.getNext()
-            head_point = head_node.getValue()
-            tail_node = cur_path._head.getNext()
-            while tail_node.getNext() is not None:
-                tail_node = tail_node.getNext()
-            tail_point = tail_node.getValue()
-
-            tail_index = points.index(tail_point)
-            # 优先且只合并最长的
-            max_li1 = None
-            max_li2 = None
-            max_len1 = 0
-            max_len2 = 0
-            maxlen = 0
-            for li in path_data:
-                if li._length >= threshold and li._length > maxlen:
-
-                    _head_node = li._head.getNext()
-                    _head_point = _head_node.getValue()
-                    li2 = LinkedList()
-                    li2.deep_copy(li)
-                    _tail_node = li2._head.getNext()
-                    while _tail_node.getNext() is not None:
-                        _tail_node = _tail_node.getNext()
-                    _tail_point = _tail_node.getValue()
-
-                    # 具有重合点则合并
-                    if _head_point == tail_point:
-                        max_li1 = li
-                        maxlen1 = max_li1._length
-                        maxlen = (max_len2 if max_len2 < max_len1 else max_len1)
-                    if _tail_point == head_point:
-                        max_li2 = li
-                        maxlen2 = max_li2._length
-                        maxlen = (max_len2 if max_len2 < max_len1 else max_len1)
-            if max_li1 is not  None or max_li2 is not None:
-                if max_li1 is not None:
-                    path_data.remove(max_li1)
-                    max_li1.remove(tail_point)
-                    cur_path.union(max_li1)
-                if max_li2 is not None:
-                    path_data.remove(max_li2)
-                    max_li2.remove(head_point)
-                    max_li2.union(cur_path)
-                    cur_path = max_li2
-
-            new_path_data.append(cur_path)
-
-        path_data = copy.deepcopy(new_path_data)
-        new_path_data = []
-    print("合并之后路段数量为", len(path_data))
-    return path_data
+    for i in range(len(path_exist)):
+        if path_exist[i] == 1:
+            li = LinkedList()
+            li.array_init(path_array[i])
+            new_path_data.append(li)
+    print("合并之后路段数量为", len(new_path_data))
+    return new_path_data
 
 
 '''
@@ -270,20 +259,6 @@ def process_coincidence(path_data):
     return path_data
 
 
-'''
-求解两条曲线之间的距离
-path1 = [p1, p2, p3, ..., ]
-path2 = [q1, q2, q3, ..., ]
-'''
-
-'''
-def cal_dist_between_curves(path1, path2):
-    if len(path1) < len(path2):
-        temp = path1
-        path1 = path2
-        path2 = temp
-
-'''
 
 
 '''
@@ -321,11 +296,11 @@ def process_similar_path(path_data):
                     cur_seg_amuth = tools.get_degree(point_A[0], point_A[1], point_B[0], point_B[1])
                     # cur_seg_amuth = (amuths[points.index(point_A)] + amuths[points.index(point_B)]) / 2
                     temp_dist = tools.cal_point_2_line(point, point_A, point_B)
-                    if temp_dist < min_dist:
+                    if temp_dist < min_dist and temp_dist < 0.0001 and tools.angle_in_interval(cur_amuth, (cur_seg_amuth - 45) % 360,(cur_seg_amuth + 45) % 360):
                         min_dist = temp_dist
                         seg_amuth = cur_seg_amuth
 
-                if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 70 )%360, (seg_amuth + 70) % 360) is False):
+                if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 45 )%360, (seg_amuth + 45) % 360) is False):
                     direction_flag = True
 
                 dist += min_dist
@@ -350,6 +325,8 @@ def process_similar_path(path_data):
     return new_path_data
 
 def process_similar_path2(path_data):
+    t9 = time.perf_counter()
+    print("去除重合且无交集路段（情形二）前路段个数为", len(path_data))
     #处理情形二
     path_exist = [1 for i in range(len(path_data))]
     path_array = []
@@ -358,6 +335,7 @@ def process_similar_path2(path_data):
         path_array.append(path.to_list())
     end_flag = False
     while True:
+        print("1")
         if end_flag:
             break
         end_flag = True
@@ -384,12 +362,12 @@ def process_similar_path2(path_data):
                         cur_seg_amuth = tools.get_degree(point_A[0], point_A[1], point_B[0], point_B[1])
                         temp_dist = tools.cal_point_2_line(point, point_A, point_B)
 
-                        if temp_dist < min_dist and temp_dist < 0.0002:
+                        if temp_dist < min_dist and temp_dist < 0.0001 and tools.angle_in_interval(cur_amuth, (cur_seg_amuth - 45) % 360,(cur_seg_amuth + 45) % 360):
                             min_dist = temp_dist
                             seg_amuth = cur_seg_amuth
                             min_index = path2.index(point_A)
-
-                    if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 70) % 360,(seg_amuth + 70) % 360) is False):
+                    #TODO 方向考虑仍有一点问题
+                    if min_dist < 0.0001 and (seg_amuth is None or tools.angle_in_interval(cur_amuth, (seg_amuth - 45) % 360,(seg_amuth + 45) % 360) is False):
                         direction_flag = True
 
                     if min_dist < 0.0001:
@@ -422,14 +400,22 @@ def process_similar_path2(path_data):
                     if classified == 1:
                         # 若这两个路段已经合并过，则跳过
                         if len(similar_point_index) == 1:
+                            #continue
                             intersection_point = path1[similar_point_index[0]]
                             if intersection_point in path2:
                                 continue
 
                         new_path1 = path1[similar_point_index[-1] + 1:]
                         # 接续时需考虑方向
+                        combine_amuth = tools.get_degree( path2[similar_point_index2[-1]][0],  path2[similar_point_index2[-1]][1],
+                                                          path1[similar_point_index[-1] + 1][0],path1[similar_point_index[-1] + 1][1])
+                        temp_index = points.index(path1[similar_point_index[-1] + 1])
+                        if tools.angle_in_interval(amuths[temp_index], (combine_amuth - 45) % 360, (combine_amuth + 45) % 360):
+                            new_path1.insert(0, path2[similar_point_index2[-1]])
+                        else:
+                            new_path1.insert(0, path2[similar_point_index2[-1] - 1])
+                            #print(path2[similar_point_index2[-1]], path2[similar_point_index2[-1] - 1])
 
-                        new_path1.insert(0, path2[similar_point_index2[-1]])
                         path_exist[index1] = 0
                         path_exist.append(1)
                         path_array.append(new_path1)
@@ -462,6 +448,8 @@ def process_similar_path2(path_data):
             path = LinkedList()
             path.array_init(path_array[i])
             new_path_data.append(path)
+    t10 = time.perf_counter()
+    print("去除重合且无交集路段（情形二）后路段个数为", len(new_path_data), '且耗时为', t10-t9, 's')
     return new_path_data
 
 
@@ -591,7 +579,7 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         visited_path = []
         t2 = time.perf_counter()
         for li in path_data:
-            if li._length >= 4:
+            if li._length >= 3:
                 temp_node = li._head.getNext()
                 while temp_node.getNext() is not None:
                     cur_path = [temp_node.getValue(), temp_node.getNext().getValue()]
@@ -663,6 +651,8 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
 
         t4 = time.perf_counter()
         print("路段首尾相接耗时", t4-t3, "s")
+        path_array = tools.data_2_array(path_data, 3)
+        tools.draw_svg(path_array, "temp.svg")
         '''
         合并道路段
         '''
@@ -673,17 +663,25 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         path_data = process_threshold(path_data, 4)
         path_data = merge_path(path_data, 4)
 
-    path_data = process_coincidence(path_data)
-    path_data = merge_path(path_data, 4)
-    path_data = process_similar_path(path_data)
-    # for debug
-    path_array = tools.data_2_array(path_data, 0)
-    tools.draw_svg(path_array, "temp.svg")
+    #path_data = process_coincidence(path_data)
+    #path_data = merge_path2(path_data, 3)
+    path_array = tools.data_2_array(path_data, 3)
+    tools.draw_svg(path_array, "temp1.svg")
+    for tt in range(1):
+        path_data = process_similar_path(path_data)
+        # for debug
+        path_array = tools.data_2_array(path_data, 0)
+        tools.draw_svg(path_array, "temp2.svg")
 
-    path_data = process_similar_path2(path_data)
+        path_data = process_similar_path2(path_data)
+        path_data = merge_path(path_data, 0)
     # for debug
     path_array = tools.data_2_array(path_data, 0)
-    tools.draw_svg(path_array, "temp2.svg")
+    tools.draw_svg(path_array, "temp3.svg")
+
+    #path_data = merge_path(path_data, 3)
+    # path_array = tools.data_2_array(path_data, 0)
+    # tools.draw_svg(path_array, "temp3.svg")
 
 
     #路段起始点
@@ -752,7 +750,7 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
         y = y + y1
         ax.plot(x1, y1, linewidth = 0.5, color = 'r')
 
-        if len(x1) >= 4:
+        if len(x1) >= 0:
             ax2.plot(x1, y1, linewidth=0.5, color='r')
             ax3.plot(x1, y1, linewidth=0.5, color='r')
         else:
@@ -761,6 +759,14 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
     ax2.scatter(total_x, total_y, s =0.1)
     ax3.scatter(x, y, s=0.1)
 
+    #绘制分布图
+    x_ticks, y_ticks, point_distribution, lon_step, lat_step, min_lon, min_lat = get_ditribution()
+    plt.xticks(x_ticks)
+    plt.yticks(y_ticks)
+    for i in range(15):
+        for j in range(15):
+            plt.text(min_lon + (i + 0.2) * lon_step, min_lat + (j + 0.2) * lat_step, point_distribution[i * 15 + j], fontsize=6)
+    plt.grid(True)
 
     print(x2, y2)
     for i in range(len(points)):
@@ -786,7 +792,7 @@ def reform_path(_radius4, _cur_point_angle, _fork_angle):
 
 
 if __name__ == "__main__":
-    reform_path(0.0004, 15, 70)
+    reform_path(0.0004, 15, 45)
 
 
 
