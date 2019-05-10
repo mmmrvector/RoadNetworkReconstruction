@@ -195,9 +195,12 @@ class LinkedList():
     def to_list(self):
         ans = []
         node = self._head.getNext()
+        former_point = None
         while node is not None:
             point = node.getValue()
-            ans.append(point)
+            if former_point is None or former_point != point:
+                ans.append(point)
+                former_point = point
             node = node.getNext()
         return ans
 
