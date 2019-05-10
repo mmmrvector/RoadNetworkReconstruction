@@ -32,6 +32,7 @@ points_visit = [] #对应点是否已被访问
 
 def find_path_part(begin_point, begin_point_amuth, kd, _radius4, _cur_point_angle, _fork_angle):
     pp = []
+    qq = []
     temp = []
     potential_points_index_set = kd.query_ball_point(begin_point, _radius4)
     nearest_point = -1
@@ -44,11 +45,6 @@ def find_path_part(begin_point, begin_point_amuth, kd, _radius4, _cur_point_angl
         for i in potential_points_index_set:
 
             angle = tools.get_degree(begin_point[0], begin_point[1], points[i][0], points[i][1])
-
-            if begin_point == [116.4415022, 39.72258294]:
-                print(points[i], amuths[i])
-                print(angle)
-                print(begin_point_amuth)
 
             #选择距离最近的特征点延伸
             #首先寻找在道路延伸方向上的最近特征点
@@ -69,6 +65,7 @@ def find_path_part(begin_point, begin_point_amuth, kd, _radius4, _cur_point_angl
                 if cur_angle < nearest_angle and i != begin_point:
                     nearest_point = i
                     nearest_angle = cur_angle
+                    qq.append(i)
 
             #在一定角度范围内的特征点被认为是分叉路口
             elif (tools.angle_in_interval(angle, (begin_point_amuth - _fork_angle) % 360, (begin_point_amuth - _cur_point_angle) % 360) \
@@ -82,6 +79,9 @@ def find_path_part(begin_point, begin_point_amuth, kd, _radius4, _cur_point_angl
         if nearest_point != -1:
             pp.insert(0, nearest_point)
             temp.insert(0, points[nearest_point])
+            qq.remove(nearest_point)
+            pp = pp+qq
+
             #print(points[nearest_point], begin_point, amuths[nearest_point], begin_point_amuth)
 
         try:
@@ -276,6 +276,7 @@ def process_similar_path(path_data):
     # 首先对path_data进行处理，并排序，便于后续处理
     path_data.sort(key= lambda path: path._length)
     for path in path_data:
+
         path_array.append(path.to_list())
 
     # 处理情形一
